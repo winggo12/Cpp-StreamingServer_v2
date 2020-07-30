@@ -26,5 +26,10 @@ void * PlayVideo::StartVideoThread(void* __this){
 
 void PlayVideo::Launch(){
         pthread_t videoThread;
-        pthread_create(&videoThread,NULL,StartVideoThread,(void*)this);
+        int ret = pthread_create(&videoThread,NULL,StartVideoThread,(void*)this);
+        
+        if(ret != 0){
+            std::cout  << "create pthread error!\n";
+            exit(1);
+        }
 }

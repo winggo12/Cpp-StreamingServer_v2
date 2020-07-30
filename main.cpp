@@ -9,16 +9,13 @@
 #include "Server.h"
 #include "PlayVideo.h"
 
-using namespace cv;
-
-
 int main()
 {   
     pthread_t videothread;
-    VideoCapture cap("../videos/45_Trim.mp4"); // open the default camera
+    cv::VideoCapture cap("../videos/45_Trim.mp4"); // open the default camera
 //VideoCapture cap(capDev);
 
-    std::cout << (cap.isOpened()? "Initialized Video Capture" : "Initialization failed") << std::endl;
+    //std::cout << (cap.isOpened()? "Initialized Video Capture" : "Initialization failed") << std::endl;
     cv::Mat image;
     int port_num = 4097;
     
@@ -26,7 +23,7 @@ int main()
     
     PlayVideo video = PlayVideo(cap,server.image);
 
-    
+    std::cout << (video.cap.isOpened()? "Initialized Video Capture" : "Initialization failed") << std::endl;
 
     video.Launch();
 

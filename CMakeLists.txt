@@ -7,6 +7,7 @@ find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 find_package(Torch REQUIRED)
+include_directories(${/home/hkuit104/libtorch151/libtorch/share/cmake/Torch})
 
 set(SOURCES main.cpp Server.cpp PlayVideo.cpp)
 
