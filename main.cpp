@@ -7,21 +7,10 @@
 #include <unistd.h> 
 #include <string.h>
 #include "Server.h"
+#include "PlayVideo.h"
 
 using namespace cv;
 
-void videoThread(VideoCapture cap , cv::Mat server_image){
-        cv::Mat image;
-        while(cap.isOpened()){
-            cap >> image;
-            cv::resize(image,server_image, cv::Size(640,480), 0, 0, cv::INTER_CUBIC);
-            cv::imshow("Image", server_image);
-            if(image.empty())
-            {
-                break;
-            }
-        }
-}
 
 int main()
 {   
@@ -35,16 +24,20 @@ int main()
     
     Server server = Server(port_num);
     
-    pthread_create(&videothread, NULL, videoThread(cap,server.image), NULL);
+    PlayVideo video = PlayVideo(cap,server.image);
 
-    server.Init();
+    
 
-    if (server.Connect() > 0 )
-    {
-        server.StartSending();
-    };
+    video.Launch();
 
-    std::cout << "Server is sending data " <<  std::endl;
+    // server.Init();
+
+    // if (server.Connect() > 0 )
+    // {
+    //     server.StartSending();
+    // };
+
+    //std::cout << "Server is sending data " <<  std::endl;
 
     // while(cap.isOpened()){
     //     cap >> image;
