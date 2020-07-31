@@ -1,31 +1,40 @@
 #include "PlayVideo.h"
 
-PlayVideo::PlayVideo(cv::VideoCapture c,cv::Mat server_img){
-        cap = c;
+PlayVideo::PlayVideo(pthread_t videoTh,std::string vid_path,cv::Mat server_img){
+        //cap = c;
+        videoThread = videoTh;
+        video_path = vid_path;
         server_image = server_img;
 }
 
 void PlayVideo::StartVideo(){
 
-        cv::Mat image;
-        std::cout << "cap.isOpened() : " << cap.isOpened();
-        while(cap.isOpened()){
-            cap >> image;
-            cv::resize(image,server_image, cv::Size(640,480), 0, 0, cv::INTER_CUBIC);
-            cv::imshow("Image", server_image);
-            if(image.empty()){
-                break;
-            }
-        }
+    cv::VideoCapture cap("../videos/45_Trim.mp4");
+    for (;;) {
+        cv::Mat frame;
+        cap >> frame;
+        cv::resize(frame, frame, cv::Size(640, 480));
+        server_image = frame;
+        flip(frame, frame, 1);
+
+        imshow("frame", frame);
+
+        if(cv::waitKey(30) >= 0)
+            break;
+    }
+    pthread_exit(NULL);  
+
 }
 
 void * PlayVideo::StartVideoThread(void* __this){
+    std::cout << "StartVideoThread" << std::endl;
     PlayVideo * _this =(PlayVideo *)__this;
     _this-> StartVideo();
+    std::cout << "StartVideoThread -> StartVideo() " << std::endl;
 }
 
 void PlayVideo::Launch(){
-        pthread_t videoThread;
+        
         int ret = pthread_create(&videoThread,NULL,StartVideoThread,(void*)this);
         
         if(ret != 0){

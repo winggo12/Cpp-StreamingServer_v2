@@ -10,11 +10,13 @@
 class PlayVideo
 {
     public:
-        cv::VideoCapture cap;
+        pthread_t videoThread;
+        //cv::VideoCapture cap;
+        std::string video_path;
         cv::Mat server_image;
         void StartVideo();
         static void * StartVideoThread(void* );
         void Launch();
-        PlayVideo(cv::VideoCapture cap,cv::Mat server_image);
+        PlayVideo(pthread_t videoTh,std::string vid_path,cv::Mat server_image);
         
 };

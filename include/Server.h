@@ -9,7 +9,7 @@
 
 class Server {
     public:
-
+        
         cv::Mat image = cv::Mat::zeros(640, 480, CV_8UC3);
         struct  sockaddr_in localAddr, remoteAddr;
         pthread_t thread_id;

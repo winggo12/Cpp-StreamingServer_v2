@@ -9,11 +9,29 @@
 #include "Server.h"
 #include "PlayVideo.h"
 
+void *VideoThread(void *arg){
+
+    cv::VideoCapture cap("../videos/45_Trim.mp4");
+    for (;;) {
+        cv::Mat frame;
+        cap >> frame;
+        cv::resize(frame, frame, cv::Size(640, 480));
+        flip(frame, frame, 1);
+
+        imshow("frame", frame);
+
+        if(cv::waitKey(30) >= 0)
+            break;
+    }
+    pthread_exit(NULL);   
+}
+
 int main()
 {   
     pthread_t videothread;
-    cv::VideoCapture cap("../videos/45_Trim.mp4"); // open the default camera
-//VideoCapture cap(capDev);
+    std::string vid_path = "../videos/45_Trim.mp4";
+    //cv::VideoCapture cap("../videos/45_Trim.mp4"); // open the default camera
+    //VideoCapture cap(capDev);
 
     //std::cout << (cap.isOpened()? "Initialized Video Capture" : "Initialization failed") << std::endl;
     cv::Mat image;
@@ -21,11 +39,11 @@ int main()
     
     Server server = Server(port_num);
     
-    PlayVideo video = PlayVideo(cap,server.image);
+    PlayVideo video = PlayVideo(videothread,vid_path,server.image);
 
-    std::cout << (video.cap.isOpened()? "Initialized Video Capture" : "Initialization failed") << std::endl;
+    pthread_create(&videothread,NULL,video.StartVideoThread,NULL);
 
-    video.Launch();
+    pthread_join(videothread, NULL);
 
     // server.Init();
 
