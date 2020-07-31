@@ -41,9 +41,14 @@ int main()
     
     PlayVideo video = PlayVideo(videothread,vid_path,server.image);
 
-    pthread_create(&videothread,NULL,video.StartVideoThread,NULL);
+    //pthread_create(&videothread,NULL,video.StartVideoThread,NULL);
+    //pthread_join(videothread, NULL);
 
-    pthread_join(videothread, NULL);
+    video.Launch();
+
+
+
+    
 
     // server.Init();
 
@@ -73,5 +78,6 @@ int main()
         
     //}
 
+    return 0;
 
 }

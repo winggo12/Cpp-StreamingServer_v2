@@ -10,11 +10,12 @@ PlayVideo::PlayVideo(pthread_t videoTh,std::string vid_path,cv::Mat server_img){
 void PlayVideo::StartVideo(){
 
     cv::VideoCapture cap("../videos/45_Trim.mp4");
+    std::cout << "Start Video Now : " << std::endl;
     for (;;) {
         cv::Mat frame;
         cap >> frame;
         cv::resize(frame, frame, cv::Size(640, 480));
-        server_image = frame;
+        server_image = frame.clone();
         flip(frame, frame, 1);
 
         imshow("frame", frame);
@@ -35,8 +36,9 @@ void * PlayVideo::StartVideoThread(void* __this){
 
 void PlayVideo::Launch(){
         
-        int ret = pthread_create(&videoThread,NULL,StartVideoThread,(void*)this);
-        
+        int ret = pthread_create(&videoThread,NULL,&PlayVideo::StartVideoThread,this);
+        pthread_join(videoThread, NULL);
+
         if(ret != 0){
             std::cout  << "create pthread error!\n";
             exit(1);
