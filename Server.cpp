@@ -1,7 +1,9 @@
 #include "Server.h"
 
-Server::Server(int port_num){
-    Server::port = port_num;
+Server::Server(int port_num, pthread_t waitingthread){
+    port = port_num;
+    this->waitingThread = waitingthread;
+
 }
 
 void Server::Init(){
@@ -31,6 +33,37 @@ void Server::Init(){
 }
 
 
+void Server::WaitingConnection(){
+    Init();
+    while(1){
+       
+     remoteSocket = accept(localSocket, (struct sockaddr *)&remoteAddr, (socklen_t*)&addrLen);  
+      std::cout << remoteSocket << std::endl;
+        if (remoteSocket < 0) {
+            perror("accept failed!");
+            exit(1);
+        } 
+    std::cout << "Connection accepted" << std::endl;
+    }
+};
+
+void * Server::WaitingConnectionThread(void* __this){
+    Server * _this =(Server *)__this;
+    _this -> WaitingConnection();
+};
+void Server::StartWaiting(){
+
+    int ret = pthread_create(&waitingThread, NULL, &Server::WaitingConnectionThread, this);
+    //Let the main function Waiting for the serverThread end , otherwise main will break instantly 
+    //pthread_join(waitingThread, NULL);
+    
+    if(ret != 0){
+        std::cout  << "waitingThread's creation error!\n";
+        exit(1);
+    }
+
+};
+
 void Server::SendData(){
 
     cv::resize(image,image, cv::Size(640,480), 0, 0, cv::INTER_CUBIC);
@@ -38,7 +71,7 @@ void Server::SendData(){
     int bytes = 0;
 
     //Change format for QT
-    cv::cvtColor(image, image, CV_BGR2RGB); 
+    //cv::cvtColor(image, image, CV_BGR2RGB); 
 
     cv::imshow("Sending Image ", image);
     cv::waitKey(1);
@@ -62,11 +95,16 @@ void * Server::SendDataThread(void* __this){
 
 void Server::StartSending(void){
     
-    int result = pthread_create(&thread_id, NULL, SendDataThread, (void*)this);
+    int ret = pthread_create(&serverThread, NULL, &Server::SendDataThread, this);
+    //Let the main function Waiting for the serverThread end , otherwise main will break instantly 
+    pthread_join(serverThread, NULL);
+    
+    if(ret != 0){
+        std::cout  << "serverThread's creation error!\n";
+        exit(1);
+    }
+
 }
-
-
-
 
 
 int Server::Connect(){

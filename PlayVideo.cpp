@@ -37,10 +37,11 @@ void * PlayVideo::StartVideoThread(void* __this){
 void PlayVideo::Launch(){
         
         int ret = pthread_create(&videoThread,NULL,&PlayVideo::StartVideoThread,this);
-        pthread_join(videoThread, NULL);
+        //Let the main function Waiting for the serverThread end , otherwise main will break instantly 
+        //pthread_join(videoThread, NULL);
 
         if(ret != 0){
-            std::cout  << "create pthread error!\n";
+            std::cout  << "videoThread's creation error!\n";
             exit(1);
         }
 }

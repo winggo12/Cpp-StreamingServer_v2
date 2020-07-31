@@ -28,7 +28,7 @@ void *VideoThread(void *arg){
 
 int main()
 {   
-    pthread_t videothread;
+    pthread_t videothread , waitingthread;
     std::string vid_path = "../videos/45_Trim.mp4";
     //cv::VideoCapture cap("../videos/45_Trim.mp4"); // open the default camera
     //VideoCapture cap(capDev);
@@ -37,46 +37,17 @@ int main()
     cv::Mat image;
     int port_num = 4097;
     
-    Server server = Server(port_num);
+    Server server = Server(port_num, waitingthread);
     
     PlayVideo video = PlayVideo(videothread,vid_path,server.image);
 
     //pthread_create(&videothread,NULL,video.StartVideoThread,NULL);
     //pthread_join(videothread, NULL);
 
-    video.Launch();
-
-
-
-    
-
-    // server.Init();
-
-    // if (server.Connect() > 0 )
-    // {
-    //     server.StartSending();
-    // };
-
-    //std::cout << "Server is sending data " <<  std::endl;
-
-    // while(cap.isOpened()){
-    //     cap >> image;
-    //     cv::resize(image,server.image, cv::Size(640,480), 0, 0, cv::INTER_CUBIC);
-    //     cv::imshow("Image", server.image);
-    //     if(image.empty())
-	// 	{
-	// 		break;
-	// 	}
-		//v::imshow("Image", image);
-        
-        // if (server.Connect() > 0 ){
-        //     server.StartSending();
-        // };
-
-        //server.SendData(image);
-        //cv::waitKey(1);
-        
-    //}
+     video.Launch();
+     server.StartWaiting();
+     pthread_join(video.videoThread, NULL);
+     pthread_join(server.waitingThread, NULL);
 
     return 0;
 
