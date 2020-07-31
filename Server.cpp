@@ -1,8 +1,10 @@
 #include "Server.h"
 
-Server::Server(int port_num, pthread_t waitingthread){
+Server::Server(int port_num, pthread_t waitingthread, pthread_t serverthread){
     port = port_num;
-    this->waitingThread = waitingthread;
+    waitingThread = waitingthread;
+    serverThread = serverthread;
+    connectionStatus = false;
 
 }
 
@@ -27,7 +29,7 @@ void Server::Init(){
     }
     
     //Listening
-    listen(localSocket , 3);
+    listen(localSocket , max_client);
         std::cout <<  "Waiting for connections...\n"
                   <<  "Server Port:" << port << std::endl;
 }
@@ -37,14 +39,19 @@ void Server::WaitingConnection(){
     Init();
     while(1){
        
-     remoteSocket = accept(localSocket, (struct sockaddr *)&remoteAddr, (socklen_t*)&addrLen);  
+      remoteSocket = accept(localSocket, (struct sockaddr *)&remoteAddr, (socklen_t*)&addrLen);  
       std::cout << remoteSocket << std::endl;
         if (remoteSocket < 0) {
             perror("accept failed!");
             exit(1);
         } 
     std::cout << "Connection accepted" << std::endl;
+    connectionStatus = true;
+    std::cout << "connectionStatus: " << connectionStatus << std::endl;
     }
+
+    pthread_exit(NULL);
+
 };
 
 void * Server::WaitingConnectionThread(void* __this){
@@ -66,6 +73,8 @@ void Server::StartWaiting(){
 
 void Server::SendData(){
 
+    //send processed image
+    while(1){
     cv::resize(image,image, cv::Size(640,480), 0, 0, cv::INTER_CUBIC);
     int imgSize = image.total() * image.elemSize();
     int bytes = 0;
@@ -73,18 +82,16 @@ void Server::SendData(){
     //Change format for QT
     //cv::cvtColor(image, image, CV_BGR2RGB); 
 
-    cv::imshow("Sending Image ", image);
-    cv::waitKey(1);
-    //send(port, image.data, imgSize, 0);
+    //cv::imshow("Sending Image ", image);
+    //cv::waitKey(1);
 
-    //send processed image
-    while(1){
-            if ((bytes = send(port, image.data, imgSize, 0)) < 0){
+        if ((bytes = send(remoteSocket, image.data, imgSize, 0)) < 0){
             std::cerr << "bytes = " << bytes << std::endl;
-            //break;
-            }
+            break;
+        }
     }
 
+    pthread_exit(NULL);  
 
 }
 

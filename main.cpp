@@ -9,26 +9,9 @@
 #include "Server.h"
 #include "PlayVideo.h"
 
-void *VideoThread(void *arg){
-
-    cv::VideoCapture cap("../videos/45_Trim.mp4");
-    for (;;) {
-        cv::Mat frame;
-        cap >> frame;
-        cv::resize(frame, frame, cv::Size(640, 480));
-        flip(frame, frame, 1);
-
-        imshow("frame", frame);
-
-        if(cv::waitKey(30) >= 0)
-            break;
-    }
-    pthread_exit(NULL);   
-}
-
 int main()
 {   
-    pthread_t videothread , waitingthread;
+    pthread_t videothread , waitingthread , serverthread;
     std::string vid_path = "../videos/45_Trim.mp4";
     //cv::VideoCapture cap("../videos/45_Trim.mp4"); // open the default camera
     //VideoCapture cap(capDev);
@@ -37,7 +20,7 @@ int main()
     cv::Mat image;
     int port_num = 4097;
     
-    Server server = Server(port_num, waitingthread);
+    Server server = Server(port_num, waitingthread, serverthread);
     
     PlayVideo video = PlayVideo(videothread,vid_path,server.image);
 
@@ -46,8 +29,22 @@ int main()
 
      video.Launch();
      server.StartWaiting();
+     while(server.connectionStatus == false){
+        
+        if(server.connectionStatus == true){
+            std::cout << "StartSending" << std::endl;
+            server.StartSending();
+
+            server.connectionStatus == false;
+            break;
+        }
+
+     }
+
+
      pthread_join(video.videoThread, NULL);
      pthread_join(server.waitingThread, NULL);
+     pthread_join(server.serverThread, NULL);
 
     return 0;
 

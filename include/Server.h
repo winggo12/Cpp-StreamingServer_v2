@@ -12,11 +12,11 @@ class Server {
         
         cv::Mat image = cv::Mat::zeros(640, 480, CV_8UC3);
         struct  sockaddr_in localAddr, remoteAddr;
+        int max_client = 3;
         pthread_t waitingThread , serverThread;
         int addrLen;
-
-        int max_client = 3;
         int localSocket,remoteSocket;
+        bool connectionStatus = false;
         //int port = 4097;   
         int port;
         //int socket;
@@ -30,9 +30,11 @@ class Server {
         static void * SendDataThread(void* );
         void StartSending();
         
+        static void * SDT(void* );
+
         //static void * threadFunc(void *);
         int Connect();
         //void CreateThread();
-        Server(int port_num, pthread_t waitingThread);
+        Server(int port_num, pthread_t waitingThread, pthread_t serverThread);
 
 };
