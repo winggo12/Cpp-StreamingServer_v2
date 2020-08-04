@@ -19,40 +19,42 @@ int main()
     //VideoCapture cap(capDev);
 
     //std::cout << (cap.isOpened()? "Initialized Video Capture" : "Initialization failed") << std::endl;
-    get_image = cv::Mat::zeros(640, 480, CV_8UC3);
+    get_image = cv::Mat::zeros(480, 640, CV_8UC3);
     cv::Mat image ;
     int port_num = 4097;
     
     Server server = Server(port_num, waitingthread, serverthread);
+    server.image = cv::Mat::zeros(480, 640, CV_8UC3);
     
     PlayVideo video = PlayVideo(videothread,vid_path,get_image);
 
     //pthread_create(&videothread,NULL,video.StartVideoThread,NULL);
     //pthread_join(videothread, NULL);
 
-     video.Launch();
-     server.StartWaiting();
+    pthread_create(&videothread,NULL,&video.StartVideoThread,&video);
+    pthread_create(&waitingthread,NULL,&server.WaitingConnectionThread,&server);
 
-    //  while(true){
-    //     cv::imshow("server_image", get_image);
+    while(true){
+        //server.image = get_image;
+        cv::imshow("server.image", get_image);
+    }
+
+    // while(server.connectionStatus == false){
+        
+    //     if(server.connectionStatus == true){
+    //         std::cout << "StartSending" << std::endl;
+        
+    //         //server.connectionStatus == false;
+    //         break;
+    //     }
+
     //  }
-     while(server.connectionStatus == false){
-        
-        if(server.connectionStatus == true){
-            std::cout << "StartSending" << std::endl;
-        
-            //server.connectionStatus == false;
-            break;
-        }
 
-     }
+    //pthread_create(&serverthread,NULL,&server.SendDataThread,&server);
 
-     server.StartSending();
-
-
-     pthread_join(video.videoThread, NULL);
-     pthread_join(server.waitingThread, NULL);
-     pthread_join(server.serverThread, NULL);
+    pthread_join(videothread, NULL);
+    pthread_join(waitingthread, NULL);
+    pthread_join(serverthread, NULL);
 
     return 0;
 

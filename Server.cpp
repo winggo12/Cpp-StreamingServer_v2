@@ -75,19 +75,17 @@ void Server::SendData(){
 
     //send processed image
     while(1){
+
     cv::resize(image,image, cv::Size(640,480), 0, 0, cv::INTER_CUBIC);
     int imgSize = image.total() * image.elemSize();
     int bytes = 0;
-
+    send(remoteSocket, image.data, imgSize, 0);
     //Change format for QT
     //cv::cvtColor(image, image, CV_BGR2RGB); 
 
-    cv::imshow("Sending Image ", image);
-    cv::waitKey(1);
-
         if ((bytes = send(remoteSocket, image.data, imgSize, 0)) < 0){
             std::cerr << "bytes = " << bytes << std::endl;
-            //break;
+            break;
         }
     }
 

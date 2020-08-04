@@ -19,7 +19,7 @@ void PlayVideo::StartVideo(){
         //flip(frame, frame, 1);
 
         cv::imshow("frame", frame);
-        //cv::imshow("server_image", server_image);
+        cv::imshow("server_image", server_image);
 
         if(cv::waitKey(30) >= 0)
             break;
@@ -35,14 +35,14 @@ void * PlayVideo::StartVideoThread(void* __this){
     std::cout << "StartVideoThread -> StartVideo() " << std::endl;
 }
 
-void PlayVideo::Launch(){
+// void PlayVideo::Launch(){
         
-        int ret = pthread_create(&videoThread,NULL,&PlayVideo::StartVideoThread,this);
-        //Let the main function Waiting for the serverThread end , otherwise main will break instantly 
-        //pthread_join(videoThread, NULL);
+//         int ret = pthread_create(&videoThread,NULL,&PlayVideo::StartVideoThread,this);
+//         //Let the main function Waiting for the serverThread end , otherwise main will break instantly 
+//         //pthread_join(videoThread, NULL);
 
-        if(ret != 0){
-            std::cout  << "videoThread's creation error!\n";
-            exit(1);
-        }
-}
+//         if(ret != 0){
+//             std::cout  << "videoThread's creation error!\n";
+//             exit(1);
+//         }
+// }
