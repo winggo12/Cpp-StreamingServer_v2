@@ -7,9 +7,9 @@
 #include <unistd.h> 
 #include <string.h>
 
+
 class Server {
     public:
-        
         cv::Mat image = cv::Mat::zeros(640, 480, CV_8UC3);
         struct  sockaddr_in localAddr, remoteAddr;
         int max_client = 3;

@@ -7,8 +7,9 @@
 #include <unistd.h> 
 #include <string.h>
 
+
 class PlayVideo
-{
+{   
     public:
         pthread_t videoThread;
         //cv::VideoCapture cap;

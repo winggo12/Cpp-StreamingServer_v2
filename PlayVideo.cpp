@@ -15,10 +15,11 @@ void PlayVideo::StartVideo(){
         cv::Mat frame;
         cap >> frame;
         cv::resize(frame, frame, cv::Size(640, 480));
-        server_image = frame.clone();
-        flip(frame, frame, 1);
+        server_image = frame.clone(); 
+        //flip(frame, frame, 1);
 
-        imshow("frame", frame);
+        cv::imshow("frame", frame);
+        //cv::imshow("server_image", server_image);
 
         if(cv::waitKey(30) >= 0)
             break;

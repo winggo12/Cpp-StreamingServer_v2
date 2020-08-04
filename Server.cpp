@@ -82,12 +82,12 @@ void Server::SendData(){
     //Change format for QT
     //cv::cvtColor(image, image, CV_BGR2RGB); 
 
-    //cv::imshow("Sending Image ", image);
-    //cv::waitKey(1);
+    cv::imshow("Sending Image ", image);
+    cv::waitKey(1);
 
         if ((bytes = send(remoteSocket, image.data, imgSize, 0)) < 0){
             std::cerr << "bytes = " << bytes << std::endl;
-            break;
+            //break;
         }
     }
 
