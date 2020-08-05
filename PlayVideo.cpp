@@ -19,7 +19,7 @@ void PlayVideo::StartVideo(){
         //flip(frame, frame, 1);
 
         cv::imshow("frame", frame);
-        cv::imshow("server_image", server_image);
+        //cv::imshow("server_image", server_image);
 
         if(cv::waitKey(30) >= 0)
             break;
