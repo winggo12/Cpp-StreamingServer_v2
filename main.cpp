@@ -14,6 +14,8 @@ cv::Mat server_image;
 bool connectionStatus = false;
 int remoteSocket;
 pthread_mutex_t mutex;
+pthread_cond_t cond;
+
 //pthread_t videothread, displaythread, waitingthread, serverthread;
 
 void * StartVideoThread(void* server_img){
@@ -26,6 +28,7 @@ void * StartVideoThread(void* server_img){
         cv::resize(frame, frame, cv::Size(640, 480));
         pthread_mutex_lock(&mutex);
         server_image = frame.clone(); 
+        pthread_cond_signal(&cond);
         pthread_mutex_unlock(&mutex);
         //flip(frame, frame, 1);
 
@@ -56,12 +59,13 @@ void * ServerSendData(void* socket){
     int remoteSocket = *(int *)socket;
    
     while(1){
+    pthread_cond_wait(&cond, &mutex);
     int imgSize = server_image.total() * server_image.elemSize();
     int bytes = 0;
     //send(remoteSocket, server_image.data, imgSize, 0);
     //Change format for QT
     //cv::cvtColor(image, image, CV_BGR2RGB); 
-
+        
         if ((bytes = send(remoteSocket, server_image.data, imgSize, 0)) < 0){
             std::cerr << "bytes = " << bytes << std::endl;
             break;
@@ -128,7 +132,7 @@ int main()
     pthread_mutex_init(&mutex, NULL);
     pthread_t videothread, displaythread, waitingthread, serverthread;
     std::string vid_path = "../videos/45_Trim.mp4";
-    server_image = cv::Mat::zeros(480, 640, CV_8UC3);
+    server_image = cv::Mat::zeros(640, 480, CV_8UC3);
     cv::Mat image ;
     int port_num = 4097;
 
@@ -138,6 +142,7 @@ int main()
     while(true){
         if(connectionStatus == true){
             pthread_create(&serverthread, NULL, &ServerSendData, &remoteSocket);
+            connectionStatus == false;
         }
     }
     pthread_join(videothread, NULL); 
