@@ -77,7 +77,7 @@ void * ServerSendData(void* socket){
             break;
         }
 
-        //std::cerr << "bytes = " << bytes << std::endl;
+        std::cerr << "bytes = " << bytes << std::endl;
         std::cout << "thisRemoteSocket: " << thisRemoteSocket << std::endl;
     }
 
