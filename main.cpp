@@ -10,6 +10,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include <thread>
+#include <mutex>
+
 #define ConnectionMaxNum 3
 
 cv::Mat server_image;
@@ -19,21 +22,24 @@ int remoteSocket;
 pthread_mutex_t mutex, connectionstatus_mutex;
 pthread_cond_t cond , cstatus , rewait;
 
+std::mutex m1 , m2;
 
 //pthread_t videothread, displaythread, waitingthread, serverthread;
 
-void * StartVideoThread(void* server_img){
-    server_image = *(cv::Mat *)server_img;
+void StartVideoThread(cv::Mat server_image){
+    //server_image = *(cv::Mat *)server_img;
     cv::VideoCapture cap("../videos/45_Trim.mp4");
     std::cout << "Start Video Now : " << std::endl;
     for (;;) {
         cv::Mat frame;
         cap >> frame;
         cv::resize(frame, frame, cv::Size(640, 480));
-        pthread_mutex_lock(&mutex);
+        // pthread_mutex_lock(&mutex);
+        m1.lock();
         server_image = frame.clone(); 
-        pthread_cond_signal(&cond);
-        pthread_mutex_unlock(&mutex);
+        // pthread_cond_signal(&cond);
+        // pthread_mutex_unlock(&mutex);
+        m1.unlock();
         //flip(frame, frame, 1);
 
         cv::imshow("frame", frame);
@@ -46,21 +52,11 @@ void * StartVideoThread(void* server_img){
 
 }
 
-void * Display(void* param){
-        for (;;) {
-        
-        cv::imshow("server_image", server_image);
 
-        if(cv::waitKey(30) >= 0)
-            break;
-    }
 
-    pthread_exit(NULL);
-}
+void ServerSendData(int thisRemoteSocket){
 
-void * ServerSendData(void* socket){
-
-    int thisRemoteSocket = *(int *)socket;
+    //int thisRemoteSocket = *(int *)socket;
     
     while(1){
     pthread_cond_wait(&cond, &mutex);
@@ -88,8 +84,8 @@ void * ServerSendData(void* socket){
     
 }
 
-void * ServerWaitForConnection(void* port_num){
-    int port_number = *(int *)port_num;
+void ServerWaitForConnection(int port_number){
+    //int port_number = *(int *)port_num;
     //struct  sockaddr_in localAddr, remoteAddr;
     //pthread_t thread_id;
 
@@ -127,10 +123,12 @@ void * ServerWaitForConnection(void* port_num){
             //exit(1);
         }
         else{
-            pthread_mutex_lock(&connectionstatus_mutex);
+            //pthread_mutex_lock(&connectionstatus_mutex);
+            m2.lock();
             connectionStatus = true;
-            pthread_cond_signal(&cstatus);
-            pthread_mutex_unlock(&connectionstatus_mutex);
+            m2.unlock();
+            //pthread_cond_signal(&cstatus);
+            //(&connectionstatus_mutex);
         } 
     std::cout << "Connection accepted" << std::endl;
     //connectionStatus = true;
@@ -145,33 +143,48 @@ void * ServerWaitForConnection(void* port_num){
 
 int main()
 {   
-    pthread_mutex_init(&mutex, NULL);
-    pthread_mutex_init(&connectionstatus_mutex, NULL);
-    pthread_t videothread, displaythread, waitingthread, serverthread;
+    //pthread_mutex_init(&mutex, NULL);
+    //pthread_mutex_init(&connectionstatus_mutex, NULL);
+    //pthread_t videothread, displaythread, waitingthread, serverthread;
+
     server_image = cv::Mat::zeros(640, 480, CV_8UC3);
     cv::Mat image ;
     int port_num = 4096;
 
-    pthread_create(&videothread, NULL, &StartVideoThread, &server_image);
-    //pthread_create(&displaythread, NULL, &Display, NULL);
-    pthread_create(&waitingthread, NULL, &ServerWaitForConnection, &port_num);
-    while(true){
+    std::thread videothread(StartVideoThread,server_image);
+    std::thread waitingthread(ServerWaitForConnection, port_num);
+    //pthread_create(&videothread, NULL, &StartVideoThread, &server_image);
+    //pthread_create(&waitingthread, NULL, &ServerWaitForConnection, &port_num);
 
-        pthread_mutex_lock(&connectionstatus_mutex);
-        pthread_cond_wait(&cstatus, &connectionstatus_mutex);
+    while(true){
+        
         if(connectionStatus == true){
             pthread_create(&serverthread, NULL, &ServerSendData, &remoteSocket);
             connectionStatus == false;
         }
         std::cout << "connectionStatus : " <<  connectionStatus << " remotesocket: "<< remoteSocket <<std::endl;
         pthread_mutex_unlock(&connectionstatus_mutex);
-    }
-    pthread_join(videothread, NULL); 
-    //pthread_join(displaythread, NULL); 
-    pthread_join(waitingthread, NULL);
-    pthread_join(serverthread, NULL);
-    pthread_mutex_destroy(&mutex);
 
+
+    }
+
+    // while(true){
+
+    //     pthread_mutex_lock(&connectionstatus_mutex);
+    //     pthread_cond_wait(&cstatus, &connectionstatus_mutex);
+    //     if(connectionStatus == true){
+    //         pthread_create(&serverthread, NULL, &ServerSendData, &remoteSocket);
+    //         connectionStatus == false;
+    //     }
+    //     std::cout << "connectionStatus : " <<  connectionStatus << " remotesocket: "<< remoteSocket <<std::endl;
+    //     pthread_mutex_unlock(&connectionstatus_mutex);
+    // }
+    // pthread_join(videothread, NULL); 
+    // pthread_join(waitingthread, NULL);
+    // pthread_join(serverthread, NULL);
+    // pthread_mutex_destroy(&mutex);
+    videothread.join();
+    waitingthread.join();
 
     return 0;
 
