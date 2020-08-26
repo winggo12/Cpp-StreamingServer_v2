@@ -71,19 +71,20 @@ void * ServerSendData(void* socket){
     //cv::cvtColor(image, image, CV_BGR2RGB); 
         
         if ((bytes = send(thisRemoteSocket, server_image.data, imgSize, 0)) < 0){
-            //std::cerr << "bytes(-ve) = " << bytes << std::endl;
+            std::cerr << "bytes(-ve) = " << bytes << std::endl;
             //pthread_cond_signal(&rewait);
             //exit(1);
             break;
         }
 
-        //std::cerr << "bytes = " << bytes << std::endl;
+        std::cerr << "bytes = " << bytes << std::endl;
         std::cout << "thisRemoteSocket: " << thisRemoteSocket << std::endl;
     }
 
     //close(thisRemoteSocket);
     std::cout << "Closing Socket and Exiting Pthread" << std::endl;
-    //pthread_exit(NULL);
+    pthread_exit(NULL);
+
     
 }
 
@@ -149,7 +150,7 @@ int main()
     pthread_t videothread, displaythread, waitingthread, serverthread;
     server_image = cv::Mat::zeros(640, 480, CV_8UC3);
     cv::Mat image ;
-    int port_num = 4097;
+    int port_num = 4096;
 
     pthread_create(&videothread, NULL, &StartVideoThread, &server_image);
     //pthread_create(&displaythread, NULL, &Display, NULL);
