@@ -18,6 +18,8 @@
 cv::Mat server_image;
 bool connectionStatus = false;
 int remoteSocket;
+int connectionNumber = ConnectionMaxNum;
+int currentConnectionNumber = 0;
 
 pthread_mutex_t mutex, connectionstatus_mutex;
 pthread_cond_t cond , cstatus , rewait;
@@ -48,7 +50,8 @@ void StartVideoThread(cv::Mat server_image){
         if(cv::waitKey(30) >= 0)
             break;
     }
-    pthread_exit(NULL);  
+
+    return ;
 
 }
 
@@ -59,7 +62,8 @@ void ServerSendData(int thisRemoteSocket){
     //int thisRemoteSocket = *(int *)socket;
     
     while(1){
-    pthread_cond_wait(&cond, &mutex);
+    
+    m1.lock();
     int imgSize = server_image.total() * server_image.elemSize();
     int bytes = 0;
     //send(remoteSocket, server_image.data, imgSize, 0);
@@ -76,11 +80,12 @@ void ServerSendData(int thisRemoteSocket){
         std::cerr << "bytes = " << bytes << std::endl;
         std::cout << "thisRemoteSocket: " << thisRemoteSocket << std::endl;
     }
+    m1.unlock();
 
     //close(thisRemoteSocket);
     std::cout << "Closing Socket and Exiting Pthread" << std::endl;
-    pthread_exit(NULL);
 
+    return;
     
 }
 
@@ -153,17 +158,20 @@ int main()
 
     std::thread videothread(StartVideoThread,server_image);
     std::thread waitingthread(ServerWaitForConnection, port_num);
+    std::thread serverthread[3];
     //pthread_create(&videothread, NULL, &StartVideoThread, &server_image);
     //pthread_create(&waitingthread, NULL, &ServerWaitForConnection, &port_num);
 
     while(true){
-        
-        if(connectionStatus == true){
-            pthread_create(&serverthread, NULL, &ServerSendData, &remoteSocket);
+        m2.lock();
+        if(connectionStatus == true && currentConnectionNumber<3){
+            serverthread[currentConnectionNumber] = std::thread(ServerSendData, remoteSocket);
+            currentConnectionNumber++;
             connectionStatus == false;
         }
+        m2.unlock();
         std::cout << "connectionStatus : " <<  connectionStatus << " remotesocket: "<< remoteSocket <<std::endl;
-        pthread_mutex_unlock(&connectionstatus_mutex);
+        
 
 
     }
